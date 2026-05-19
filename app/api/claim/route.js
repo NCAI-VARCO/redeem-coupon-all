@@ -13,7 +13,6 @@ function maskUserAgent(value) {
 }
 
 export async function POST() {
-  const db = getAdminDb();
   const cookieStore = await cookies();
   const h = await headers();
   const existingId = cookieStore.get("redeem_claim_id")?.value;
@@ -21,6 +20,8 @@ export async function POST() {
   const ua = maskUserAgent(h.get("user-agent"));
 
   try {
+    const db = getAdminDb();
+
     // 이미 받은 사용자 체크
     if (existingId) {
       const existingSnap = await db.collection("redeemCodes").doc(existingId).get();
@@ -61,6 +62,7 @@ export async function POST() {
 
       tx.update(doc.ref, {
         used: true,
+        status: "claimed",
         usedAt: FieldValue.serverTimestamp(),
         usedBy: ip,
         claimedIp: ip,

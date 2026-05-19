@@ -1,4 +1,4 @@
-import { getAdminDb } from "@/lib/firebaseAdmin";
+import { getAdminDb, FIRESTORE_DATABASE_ID } from "@/lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -21,40 +21,53 @@ export async function GET(req) {
     );
   }
 
-  const db = getAdminDb();
+  try {
+    const db = getAdminDb();
 
-  const snap = await db
-    .collection("redeemCodes")
-    .orderBy("createdAt", "asc")
-    .get();
+    const snap = await db
+      .collection("redeemCodes")
+      .orderBy("createdAt", "asc")
+      .get();
 
-  const codes = snap.docs.map((doc) => {
-    const data = doc.data();
-    const used = data.used === true || data.status === "claimed";
+    const codes = snap.docs.map((doc) => {
+      const data = doc.data();
+      const used = data.used === true || data.status === "claimed";
 
-    return {
-      id: doc.id,
-      url: data.url || "",
+      return {
+        id: doc.id,
+        url: data.url || "",
+        used,
+        status: used ? "used" : "available",
+        usedAt: toIso(data.usedAt || data.claimedAt),
+        usedBy: data.usedBy || data.claimedIp || null,
+        createdAt: toIso(data.createdAt),
+        order: typeof data.order === "number" ? data.order : null,
+      };
+    });
+
+    const total = codes.length;
+    const used = codes.filter((code) => code.used).length;
+    const available = total - used;
+    const usageRate = total === 0 ? 0 : Math.round((used / total) * 1000) / 10;
+
+    return Response.json({
+      ok: true,
+      databaseId: FIRESTORE_DATABASE_ID,
+      total,
       used,
-      status: used ? "used" : "available",
-      usedAt: toIso(data.usedAt || data.claimedAt),
-      usedBy: data.usedBy || data.claimedIp || null,
-      createdAt: toIso(data.createdAt),
-      order: typeof data.order === "number" ? data.order : null,
-    };
-  });
-
-  const total = codes.length;
-  const used = codes.filter((code) => code.used).length;
-  const available = total - used;
-  const usageRate = total === 0 ? 0 : Math.round((used / total) * 1000) / 10;
-
-  return Response.json({
-    ok: true,
-    total,
-    used,
-    available,
-    usageRate,
-    codes,
-  });
+      available,
+      usageRate,
+      codes,
+    });
+  } catch (e) {
+    console.error("Dashboard API error:", e);
+    return Response.json(
+      {
+        ok: false,
+        message: e?.message || "Firebase 연결 중 오류가 발생했습니다.",
+        databaseId: FIRESTORE_DATABASE_ID,
+      },
+      { status: 500 }
+    );
+  }
 }

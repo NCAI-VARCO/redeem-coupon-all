@@ -14,18 +14,20 @@
    - Production mode 권장
    - Location은 가까운 지역 선택
 3. 프로젝트 설정 → 서비스 계정 → 새 비공개 키 생성
+   - 반드시 `redeem-coupon-all` Firebase 프로젝트에서 새로 받은 키를 사용하세요. 예전 `america` 프로젝트 키를 넣으면 계속 예전 프로젝트로 연결됩니다.
 4. 받은 JSON에서 아래 값을 `.env.local` 또는 Vercel Environment Variables에 입력
 
 ```bash
 FIREBASE_PROJECT_ID="..."
 FIREBASE_CLIENT_EMAIL="..."
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIRESTORE_DATABASE_ID="redeem-coupon-all"
 ADMIN_TOKEN="관리자페이지접속용_아무문자열"
 NEXT_PUBLIC_SITE_NAME="VARCO Redeem"
 NEXT_PUBLIC_CLAIM_BUTTON_TEXT="리딤 코드 받기"
 ```
 
-중요: `FIREBASE_PRIVATE_KEY`는 줄바꿈을 `\n` 형태로 넣어야 합니다.
+중요: `FIREBASE_PRIVATE_KEY`는 줄바꿈을 `\n` 형태로 넣어야 합니다. Firestore Database ID는 `redeem-coupon-all`로 고정했습니다. Vercel에서는 `FIRESTORE_DATABASE_ID=redeem-coupon-all`도 함께 넣어주세요.
 
 ## 2. 로컬 실행
 
@@ -65,6 +67,7 @@ npm run import:codes
    - `FIREBASE_PROJECT_ID`
    - `FIREBASE_CLIENT_EMAIL`
    - `FIREBASE_PRIVATE_KEY`
+   - `FIRESTORE_DATABASE_ID` = `redeem-coupon-all`
    - `ADMIN_TOKEN`
    - `NEXT_PUBLIC_SITE_NAME`
    - `NEXT_PUBLIC_CLAIM_BUTTON_TEXT`
